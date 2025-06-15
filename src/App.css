@@ -1,0 +1,12 @@
+#root {
+  display: flex;
+  width: 100vw;
+  padding: 2rem;
+  text-align: center;
+  flex-direction: column;
+  align-content: center;
+  align-items: center;
+  justify-content: center;
+}
+
+

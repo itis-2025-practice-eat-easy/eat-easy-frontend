@@ -1,0 +1,151 @@
+.header {
+    max-width: 1043px;
+    width: 100%;
+    height: 101px;
+    margin: 0 auto;
+    border: 1px solid #000;
+    border-radius: 40px;
+    background: #f8f5f1;
+    font-family: var(--font-family);
+}
+
+.header__nav--mobile {
+    display: none;
+}
+
+.header__nav--desktop {
+    height: 32px;
+    margin: 34.5px auto;
+}
+
+.header__nav-list--desktop {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 47px;
+}
+
+.header__nav-wrapper {
+    display: flex;
+    gap: 64px;
+}
+
+.header__nav-icon {
+    margin-right: 8px;
+}
+
+.header__nav-link {
+    font-weight: 500;
+    font-size: 16px;
+    letter-spacing: -0.04em;
+    text-transform: uppercase;
+    color: var(--text-color2);
+    display: flex !important;
+    align-items: flex-end;
+}
+
+@media (max-width: 1240px) {
+    .header__nav-list--desktop {
+        gap: 3.79vw;
+    }
+
+    .header__nav-wrapper {
+        gap: 5.16vw;
+    }
+}
+
+@media (max-width: 768px) {
+    .header {
+        background: none;
+        border: none;
+        height: 35px;
+        margin-top: 32px;
+    }
+
+    .header__nav--desktop {
+        display: none;
+    }
+
+    .header__nav--mobile {
+        display: block;
+    }
+
+    .header__nav-list--mobile {
+        display: flex;
+        justify-content: space-between;
+        margin: 0 16px 0 9px;
+    }
+
+    .header__nav-btns {
+        display: flex;
+        gap: 9px;
+    }
+
+    .header__nav-link {
+        display: block !important;
+    }
+
+    .header__nav-btn {
+        border: 0.80px solid var(--text-color2);
+        border-radius: 2px;
+        width: 35px;
+        height: 35px;
+    }
+
+    .header__nav-btn--cart {
+        padding: 7px;
+    }
+
+    .header__nav-btn--menu {
+        width: 47px;
+        padding: 11px 13px;
+    }
+
+    .header__menu {
+        height: 308px;
+        background: #fff;
+        padding: 0 16px 0 16px;
+    }
+
+    .header__menu a {
+        font-weight: 500;
+        font-size: 16px;
+        letter-spacing: -0.04em;
+        color: var(--text-color2);
+    }
+
+    .header__icons-wrapper {
+        display: flex;
+        justify-content: space-between;
+        padding-top: 33px;
+    }
+
+    .header__menu-logo {
+        margin-left: -7px;
+    }
+
+    .header__menu-btn {
+        margin-right: 16px;
+    }
+
+    .header__menu-list {
+        margin-top: 48px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .header__menu-fav {
+        margin-right: 8px;
+    }
+
+    .header__menu-btn--contact {
+        width: 100%;
+        margin: 23px 0 27px;
+        text-align: center;
+        border: 1px solid var(--text-color2);
+        border-radius: 32px;
+        padding: 10px 24px;
+        height: 39px;
+    }
+}
