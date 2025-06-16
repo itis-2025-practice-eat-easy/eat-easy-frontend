@@ -3,7 +3,7 @@ import {CartItem, type CartItemData} from './CartItem';
 import './cart.css';
 
 export const Cart: React.FC = () => {
-  //заглушка!!!
+  //заглушка!!!зздесь ничо работает кайф
   const [items, setItems] = useState<CartItemData[]>([
     {
       id: '1',

@@ -1,88 +1,83 @@
-import { createContext, useState, useEffect, useContext, type ReactNode } from 'react';
+import {createContext, useState, useEffect, useContext, type ReactNode} from 'react';
 import { getUserById } from '../api/userApi';
-import { loginApi, type LoginResponse } from '../api/authApi';
+import {loginApi, logoutApi, type LoginRequest, type TokenResponse} from '../api/authApi';
 import type { User } from '../types/users';
 
 interface AuthContextType {
     user: User | null;
-    login: (email: string, password: string) => Promise<void>;
-    logout: () => void;
+    login: (login: string, password: string, fingerprint: string) => Promise<void>;
+    logout: () => Promise<void>;
     loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function parseJwt(token: string): { [key: string]: any } | null {
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const json = atob(base64);
+        return JSON.parse(json);
+    } catch {
+        return null;
+    }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState<boolean>(true);
-
-    function parseJwt(token: string): Record<string, unknown> | null {
-        try {
-            const base64Url = token.split('.')[1];
-            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonPayload = decodeURIComponent(
-                atob(base64)
-                    .split('')
-                    .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-                    .join('')
-            );
-            return JSON.parse(jsonPayload);
-        } catch {
-            return null;
-        }
-    }
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const initAuth = async () => {
-            const token = localStorage.getItem('token');
-            if (token) {
-                const payload = parseJwt(token);
-                let userId: string | null = null;
-                if (payload?.sub && typeof payload.sub === 'string') {
-                    userId = payload.sub;
-                } else {
-                    userId = localStorage.getItem('userId');
-                }
-                if (userId) {
-                    try {
-                        const fullUser = await getUserById(userId);
-                        setUser(fullUser);
-                    } catch {
-                        localStorage.removeItem('token');
-                        localStorage.removeItem('userId');
-                        setUser(null);
-                    }
+        (async () => {
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                setLoading(false);
+                return;
+            }
+
+            const payload = parseJwt(token);
+            const sub = payload?.sub;
+            if (typeof sub === 'string') {
+                try {
+                    const u = await getUserById(sub);
+                    setUser(u);
+                } catch {
+                    localStorage.removeItem('accessToken');
+                    setUser(null);
                 }
             }
             setLoading(false);
-        };
-        initAuth();
+        })();
     }, []);
 
-    const login = async (email: string, password: string) => {
+
+    const login = async (login: string, password: string, fingerprint: string) => {
         setLoading(true);
         try {
-            const resp: LoginResponse = await loginApi({ email, password });
-            localStorage.setItem('token', resp.token);
-            localStorage.setItem('userId', resp.user.id);
-            const loggedInUser: User = {
-                id: resp.user.id,
-                username: resp.user.username ?? '',
-                email: resp.user.email ?? '',
-                firstName: resp.user.firstName ?? '',
-                lastName: resp.user.lastName ?? '',
-                role: resp.user.role,
-            };
-            setUser(loggedInUser);
+            const req: LoginRequest = { login, password, fingerprint };
+
+            const tokens: TokenResponse = await loginApi(req);
+            localStorage.setItem('accessToken', tokens.access);
+            const payload = parseJwt(tokens.access);
+            const userId = typeof payload?.sub === 'string' ? payload.sub : null;
+            if (userId) {
+                const u = await getUserById(userId);
+                setUser(u);
+            }
         } finally {
             setLoading(false);
         }
     };
 
-    const logout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('userId');
-        setUser(null);
+    const logout = async () => {
+        setLoading(true);
+        try {
+            await logoutApi();
+            localStorage.removeItem('accessToken');
+            setUser(null);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -97,4 +92,3 @@ export function useAuth() {
     if (!ctx) throw new Error('useAuth must be within AuthProvider');
     return ctx;
 }
-

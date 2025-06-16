@@ -18,7 +18,7 @@ export interface UserResponseDto {
 
 export interface UserWithHashPasswordResponseDto {
     userResponseDto: UserResponseDto;
-    hashPassword: string;  // ≥60 chars
+    hashPassword: string;
 }
 
 export interface User {

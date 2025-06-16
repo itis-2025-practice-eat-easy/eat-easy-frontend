@@ -1,15 +1,23 @@
-import './ProductCard.css'
+import './product_card.css';
+import type { Category } from '../../types/products';
 
-function ProductCard() {
-    return (
-        <article className="menu__product-card">
-            <img src="src\assets\Menu\52.png" alt="product" className="menu__product-img" />
-            <div className="menu__product-desc">
-                <h3 className="menu__product-title">Cakes</h3>
-                <span className="menu__product-price">24 Menu</span>
-            </div>
-        </article>
-    )
+interface ProductCardProps {
+    category: Category;
 }
 
-export default ProductCard
+function ProductCard({ category }: ProductCardProps) {
+    return (
+        <article className="menu__product-card">
+            <img
+                src="/images/category-placeholder.png"
+                alt={category.title}
+                className="menu__product-img"
+            />
+            <div className="menu__product-desc">
+                <h3 className="menu__product-title">{category.title}</h3>
+            </div>
+        </article>
+    );
+}
+
+export default ProductCard;

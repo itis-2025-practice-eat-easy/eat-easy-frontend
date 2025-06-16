@@ -13,7 +13,11 @@ export function useCreateUser() {
             const newUser: User = await createUser(payload);
             return newUser;
         } catch (err: any) {
-            setError(err.response?.data?.message || err.message || 'Ошибка при создании пользователя');
+            if (err.response?.status === 409) {
+                setError('Пользователь с таким email или именем уже существует');
+            } else {
+                setError(err.response?.data?.message || err.message);
+            }
             throw err;
         } finally {
             setLoading(false);
