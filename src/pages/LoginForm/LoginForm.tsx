@@ -4,29 +4,31 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { loginSchema } from "../../utils/validation/loginSchema.ts";
 import './login.css'
 import Button from "../../components/Button/Button.tsx";
-import {useAuth} from "../../context/AuthApi.tsx";
+import {useAuthRedux} from "../../hooks/useAuthRedux.ts";
 
     interface LoginFormValues {
-        email: string;
+        login: string;
         password: string;
     }
 
     export default function LoginForm() {
         const navigate = useNavigate();
-        const { login, loading } = useAuth();
+        const { login, loading } = useAuthRedux();
         const [generalError, setGeneralError] = useState<string | null>(null);
 
-        const initialValues: LoginFormValues = { email: '', password: '' };
+        const initialValues: LoginFormValues = { login: '', password: '' };
 
         const handleSubmit = async (
-            { email, password }: LoginFormValues,
+            values: LoginFormValues,
             helpers: FormikHelpers<LoginFormValues>
         ) => {
             setGeneralError(null);
             helpers.setSubmitting(true);
             try {
-                const fingerprint = crypto.randomUUID();
-                await login(email, password, fingerprint);
+                await login({
+                    login: values.login,
+                    password: values.password,
+                });
                 navigate("/");
             } catch (err: any) {
                 const msg = err.response?.data?.error || err.message || 'Ошибка при входе';
@@ -48,10 +50,10 @@ import {useAuth} from "../../context/AuthApi.tsx";
                         {({ isSubmitting }) => (
                             <Form>
                                 <div className="login-field-group">
-                                    <label htmlFor="email" className="login-label">Email</label>
-                                    <Field id="email" name="email" type="text" placeholder="user@example.com" className="login-input"
+                                    <label htmlFor="login" className="login-label">Email</label>
+                                    <Field id="login" name="login" type="text" placeholder="user@example.com" className="login-input"
                                     />
-                                    <ErrorMessage name="email">
+                                    <ErrorMessage name="login">
                                     {msg => <div className="login-error-message">{msg}</div>}
                                 </ErrorMessage>
                                 </div>

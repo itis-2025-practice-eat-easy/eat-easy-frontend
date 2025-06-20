@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import './Header.css';
-import {useAuth} from "../../context/AuthApi.tsx";
+import {useAuthRedux} from "../../hooks/useAuthRedux.ts";
 
 function Header() {
     const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState<boolean>(false);
-    const { user, logout } = useAuth();
     const navigate = useNavigate();
+    const { isAuthenticated, logout, loading } = useAuthRedux();
+
 
     const handleClick = () => {
         setIsHeaderMenuOpen(prev => !prev);
@@ -19,6 +20,8 @@ function Header() {
         closeMenu();
         navigate('/signin');
     };
+
+    if(loading) return null;
 
     return (
         <header className="header">
@@ -54,7 +57,7 @@ function Header() {
                         </NavLink>
                     </li>
                     <li className="header__nav-item">
-                        {user ? (
+                        {isAuthenticated ? (
                             <NavLink to="/profile" className="header__nav-link">
                                 <span className="header__nav-title">Account</span>
                             </NavLink>
@@ -64,7 +67,7 @@ function Header() {
                             </NavLink>
                         )}
                     </li>
-                    {user && (
+                    {isAuthenticated && (
                         <li className="header__nav-item">
                             <button onClick={handleLogout} className="header__nav-link header__nav-logout-button">
                                 <span className="header__nav-title">Logout</span>
@@ -74,7 +77,6 @@ function Header() {
                 </ul>
             </nav>
 
-            {/* Mobile nav */}
             <nav className="header__nav header__nav--mobile">
                 <ul className="header__nav-list header__nav-list--mobile">
                     <li className="header__nav-list-item">
@@ -123,7 +125,7 @@ function Header() {
                             </NavLink>
                         </li>
                         <li className="header__menu-item">
-                            {user ? (
+                            {isAuthenticated ? (
                                 <NavLink to="/account" className="header__menu-link" onClick={closeMenu}>
                                     Account
                                 </NavLink>
@@ -133,7 +135,7 @@ function Header() {
                                 </NavLink>
                             )}
                         </li>
-                        {user && (
+                        {isAuthenticated && (
                             <li className="header__menu-item">
                                 <button onClick={() => { handleLogout(); }} className="header__menu-link">
                                     Logout

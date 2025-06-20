@@ -1,46 +1,42 @@
-import http from './http';
-
+import axios from 'axios';
+export type TokenResponse =
+    { access: string;
+        refresh: string
+    };
 export interface LoginRequest {
     login: string;
     password: string;
     fingerprint: string;
 }
-
-export interface TokenResponse {
-    access: string;
-    refresh: string;
-}
-
 export interface RefreshRequest {
     fingerprint: string;
-    refreshToken?: string;
+    refreshToken: string;
 }
 
-const AUTH_SERVER = 'http://5.104.75.208:8080';
+const API_BASE = 'http://5.104.75.208:8080';
 
 export async function loginApi(payload: LoginRequest): Promise<TokenResponse> {
-    // Передаём полный URL к эндпоинту аутентификации
-    const resp = await http.post<TokenResponse>(
-        `${AUTH_SERVER}/api/v1/auth/login`,
-        payload,
-        { withCredentials: true }
+    const { data } = await axios.post<TokenResponse>(
+        `${API_BASE}/api/v1/auth/login`,
+        payload
     );
-    return resp.data;
+    return data;
 }
 
 export async function refreshApi(payload: RefreshRequest): Promise<TokenResponse> {
-    const resp = await http.post<TokenResponse>(
-        '/api/v1/auth/refresh',
-        payload,
-        { withCredentials: true }
+    const { data } = await axios.post<TokenResponse>(
+        `${API_BASE}/api/v1/auth/refresh`,
+        {
+            fingerprint: payload.fingerprint,
+            refreshToken: payload.refreshToken,
+        }
     );
-    return resp.data;
+    return data;
 }
 
 export async function logoutApi(): Promise<void> {
-    await http.post(
-        '/api/v1/auth/logout',
-        {},
-        { withCredentials: true }
+    await axios.post(
+        `${API_BASE}/api/v1/auth/logout`,
+        {}
     );
 }

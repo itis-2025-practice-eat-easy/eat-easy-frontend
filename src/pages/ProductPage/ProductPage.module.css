@@ -1,0 +1,94 @@
+.wrapper {
+    padding: 2vw 6vw;
+}
+
+.breadcrumbs {
+    font-size: 1.4vw;
+    margin-bottom: 2vw;
+    margin-left: -60vw;
+    color: #2f3137;
+    font-family: "PT Sans Caption", sans-serif;
+}
+
+.breadcrumbs .active {
+    color: #236130;
+    font-weight: 600;
+}
+
+.content {
+    display: flex;
+    gap: 8vw;
+    align-items: start;
+    font-family: "PT Sans Caption", sans-serif;
+    margin-top: 5vw;
+}
+
+.image {
+    width: 26vw;
+    height: auto;
+}
+
+.details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    width: 40vw;
+}
+
+.name {
+    font-size: 2.9vw;
+    font-weight: 700;
+    margin-bottom: 1vw;
+}
+
+.price {
+    font-size: 1.4vw;
+    margin-bottom: 2vw;
+}
+
+.price span {
+    color: #236130;
+    font-weight: 600;
+    margin-left: 0.5vw;
+}
+
+.subheading {
+    font-size: 1.3vw;
+    margin-bottom: 0.5vw;
+}
+
+.desc {
+    font-size: 1.1vw;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 2vw;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 1.5vw;
+}
+
+.add {
+    padding: 0.8vw 2vw;
+    font-size: 1vw;
+    border: none;
+    width: 30vw;
+    border-radius: 2vw;
+    background: #9ABC05;
+    color: #373737;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: "PT Sans Caption", sans-serif;
+}
+
+.like {
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: 3vw;
+    height: 3vw;
+}

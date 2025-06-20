@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react';
-import type { LoginRequest, TokenResponse } from '../api/authApi';
+import {type LoginRequest, logoutApi, refreshApi, type TokenResponse,} from '../api/authApi';
 import { loginApi} from '../api/authApi';
-import {logoutApi, refreshApi} from "../api/http.ts";
 
 export function useAuthActions() {
     const [loading, setLoading] = useState(false);
@@ -13,6 +12,7 @@ export function useAuthActions() {
         try {
             const tokens = await loginApi(payload);
             localStorage.setItem('accessToken', tokens.access);
+            localStorage.setItem('refreshToken', tokens.refresh);
             return tokens;
         } catch (err: any) {
             setError(err.response?.data?.error || err.message);
@@ -22,11 +22,12 @@ export function useAuthActions() {
         }
     }, []);
 
-    const refresh = useCallback(async (fingerprint: string): Promise<TokenResponse> => {
+    const refresh = useCallback(async (fingerprint: string, refreshToken: string): Promise<TokenResponse> => {
         setLoading(true);
         try {
-            const tokens = await refreshApi({ fingerprint });
+            const tokens = await refreshApi({ fingerprint, refreshToken });
             localStorage.setItem('accessToken', tokens.access);
+            localStorage.setItem('refreshToken', tokens.refresh);
             return tokens;
         } finally {
             setLoading(false);
@@ -38,6 +39,7 @@ export function useAuthActions() {
         try {
             await logoutApi();
             localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
         } finally {
             setLoading(false);
         }

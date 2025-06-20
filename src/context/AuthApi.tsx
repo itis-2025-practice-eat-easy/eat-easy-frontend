@@ -1,94 +1,154 @@
-import {createContext, useState, useEffect, useContext, type ReactNode} from 'react';
-import { getUserById } from '../api/userApi';
-import {loginApi, logoutApi, type LoginRequest, type TokenResponse} from '../api/authApi';
+import React, {
+    createContext,
+    type ReactNode,
+    useCallback,
+    useContext,
+    useEffect,
+    useState,
+} from 'react';
+import type { LoginRequest } from '../api/authApi';
+import { loginApi, refreshApi, logoutApi } from '../api/authApi';
+import { getUserByEmail } from '../api/userApi';
 import type { User } from '../types/users';
 
 interface AuthContextType {
-    user: User | null;
-    login: (login: string, password: string, fingerprint: string) => Promise<void>;
-    logout: () => Promise<void>;
+    isAuthenticated: boolean;
     loading: boolean;
+    error: string | null;
+    login: (payload: Omit<LoginRequest, 'fingerprint'>) => Promise<void>;
+    logout: () => Promise<void>;
+    user: User | null;
+    userId: string | null;
+    email: string | null;
+    setUser: (user: User | null) => void;
+    setEmail: (email: string | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-function parseJwt(token: string): { [key: string]: any } | null {
-    try {
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const json = atob(base64);
-        return JSON.parse(json);
-    } catch {
-        return null;
-    }
-}
-
-export function AuthProvider({ children }: { children: ReactNode }) {
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+    const [isAuthenticated, setAuthenticated] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
     const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [email, setEmail] = useState<string | null>(null);
+
+    const userId = user?.id ?? null;
+
+    const fetchUserByEmail = useCallback(async (userEmail: string) => {
+        try {
+            const prof = await getUserByEmail(userEmail);
+            setUser(prof);
+        } catch (err) {
+            console.error('Ошибка getUserByEmail', err);
+            localStorage.removeItem('userEmail');
+            setAuthenticated(false);
+        }
+    }, []);
 
     useEffect(() => {
-        (async () => {
-            const token = localStorage.getItem('accessToken');
-            if (!token) {
-                setLoading(false);
-                return;
-            }
+        const fp = localStorage.getItem('fingerprint') ?? crypto.randomUUID();
+        localStorage.setItem('fingerprint', fp);
 
-            const payload = parseJwt(token);
-            const sub = payload?.sub;
-            if (typeof sub === 'string') {
+        const storedEmail = localStorage.getItem('userEmail');
+        const rt = localStorage.getItem('refreshToken') ?? '';
+
+        (async () => {
+            if (storedEmail && rt) {
                 try {
-                    const u = await getUserById(sub);
-                    setUser(u);
-                } catch {
-                    localStorage.removeItem('accessToken');
+                    const tokens = await refreshApi({ fingerprint: fp, refreshToken: rt });
+                    localStorage.setItem('accessToken', tokens.access);
+                    localStorage.setItem('refreshToken', tokens.refresh);
+                    setEmail(storedEmail);
+                    await fetchUserByEmail(storedEmail);
+                    setAuthenticated(true);
+                } catch (refreshErr) {
+                    console.warn('Refresh failed', refreshErr);
+                    setAuthenticated(false);
                     setUser(null);
+                    setEmail(null);
+                    localStorage.removeItem('userEmail');
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
                 }
+            } else {
+                setAuthenticated(false);
+                setUser(null);
+                setEmail(null);
             }
             setLoading(false);
         })();
-    }, []);
+    }, [fetchUserByEmail]);
 
-
-    const login = async (login: string, password: string, fingerprint: string) => {
+    const login = useCallback(async (payload: Omit<LoginRequest, 'fingerprint'>) => {
         setLoading(true);
+        setError(null);
         try {
-            const req: LoginRequest = { login, password, fingerprint };
-
-            const tokens: TokenResponse = await loginApi(req);
+            const fp = localStorage.getItem('fingerprint')!;
+            const tokens = await loginApi({ ...payload, fingerprint: fp });
             localStorage.setItem('accessToken', tokens.access);
-            const payload = parseJwt(tokens.access);
-            const userId = typeof payload?.sub === 'string' ? payload.sub : null;
-            if (userId) {
-                const u = await getUserById(userId);
-                setUser(u);
-            }
+            localStorage.setItem('refreshToken', tokens.refresh);
+            const userEmail = payload.login;
+            setEmail(userEmail);
+            localStorage.setItem('userEmail', userEmail);
+            setAuthenticated(true);
+            await fetchUserByEmail(userEmail);
+        } catch (err: any) {
+            console.error('Login error', err);
+            setAuthenticated(false);
+            setUser(null);
+            setEmail(null);
+            localStorage.removeItem('userEmail');
+            setError(err.response?.data?.error || err.message || 'Ошибка при входе');
+            throw err;
         } finally {
             setLoading(false);
         }
-    };
+    }, [fetchUserByEmail]);
 
-    const logout = async () => {
+    const logout = useCallback(async () => {
         setLoading(true);
         try {
             await logoutApi();
-            localStorage.removeItem('accessToken');
-            setUser(null);
+        } catch (err) {
+            console.warn('Logout API error', err);
         } finally {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('userEmail');
+            setAuthenticated(false);
+            setUser(null);
+            setEmail(null);
             setLoading(false);
         }
-    };
+    }, []);
+
+    if (loading) return null;
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, loading }}>
+        <AuthContext.Provider
+            value={{
+                isAuthenticated,
+                loading,
+                error,
+                login,
+                logout,
+                user,
+                userId,
+                email,
+                setUser,
+                setEmail,
+            }}
+        >
             {children}
         </AuthContext.Provider>
     );
-}
+};
 
-export function useAuth() {
+export const useAuth = (): AuthContextType => {
     const ctx = useContext(AuthContext);
-    if (!ctx) throw new Error('useAuth must be within AuthProvider');
+    if (!ctx) {
+        throw new Error('useAuth must be used within AuthProvider');
+    }
     return ctx;
-}
+};

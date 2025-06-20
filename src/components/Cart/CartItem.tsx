@@ -1,5 +1,5 @@
 import React from 'react';
-import './cart.css';
+import './cart_item.css';
 
 export interface CartItemData {
     id: string;

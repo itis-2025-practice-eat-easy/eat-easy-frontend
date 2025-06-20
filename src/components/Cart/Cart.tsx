@@ -1,29 +1,36 @@
 import React, { useState } from 'react';
 import {CartItem, type CartItemData} from './CartItem';
 import './cart.css';
+import Button from "../Button/Button.tsx";
 
 export const Cart: React.FC = () => {
-  //заглушка!!!зздесь ничо работает кайф
   const [items, setItems] = useState<CartItemData[]>([
     {
       id: '1',
       name: 'Chococheese Cake',
-      imageUrl: '/images/chococheese.png',
+      imageUrl: 'src/assets/menu/52.png',
       price: 2.5,
       quantity: 1,
     },
     {
       id: '2',
       name: 'Pink Donuts',
-      imageUrl: '/images/pink-donut.png',
+      imageUrl: 'src/assets/menu/52.png',
       price: 2.8,
       quantity: 1,
     },
     {
       id: '3',
       name: 'Pink Sweet',
-      imageUrl: '/images/pink-sweet.png',
+      imageUrl: 'src/assets/menu/52.png',
       price: 2.1,
+      quantity: 1,
+    },
+    {
+      id: '4',
+      name: 'Chococheese Cake',
+      imageUrl: 'src/assets/menu/52.png',
+      price: 2.5,
       quantity: 1,
     },
   ]);
@@ -53,7 +60,6 @@ export const Cart: React.FC = () => {
   const total = items.reduce((sum, x) => sum + x.price * x.quantity, 0);
 
   const handleCheckout = () => {
-    // здесь могла бы быть навигация или вызов API
     alert(`Checkout: total = $${total.toFixed(2)}`);
   };
 
@@ -83,17 +89,17 @@ export const Cart: React.FC = () => {
         }
 
         <div className="cart__footer">
-          <span className="cart__footer-label">Total:</span>
-          <span className="cart__footer-value">${total.toFixed(2)}</span>
-        </div>
-
-        <button
-            className="cart__checkout-btn"
-            onClick={handleCheckout}
-            disabled={items.length === 0}
-        >
+          <div className="cart__total">
+            <span className="cart__footer-label">Total:</span>
+            <span className="cart__footer-value">${total.toFixed(2)}</span>
+          </div>
+          <Button
+              className="cart__checkout-btn"
+              onClick={handleCheckout}
+          >
           Checkout
-        </button>
+          </Button>
+        </div>
       </div>
   );
 };

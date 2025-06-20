@@ -4,7 +4,9 @@ import {Route, Routes} from "react-router-dom";
 import ProfilePage from "./pages/Profile/ProfilePage.tsx";
 import RegistrationForm from "./pages/RegistrationForm/RegistrationForm.tsx";
 import LoginForm from "./pages/LoginForm/LoginForm.tsx";
-import {Cart} from "./components/Cart/Cart.tsx";
+import CartPage from "./pages/CartPage/CartPage.tsx";
+import ProductsMenu from "./pages/ProductsMenu/ProductsMenu.tsx";
+import ProductPage from "./pages/ProductPage/ProductPage.tsx";
 
 function App() {
 
@@ -15,7 +17,9 @@ function App() {
             <Route path="/registration" element={<RegistrationForm/>}/>
             <Route path="/profile" element={<ProfilePage/>}/>
             <Route path="/login" element={<LoginForm/>}/>
-            <Route path="/cart" element={<Cart/>} />
+            <Route path="/cart" element={<CartPage/>} />
+            <Route path="/menu" element={<ProductsMenu/>}/>
+            <Route path="/product/:name" element={<ProductPage />} />
         </Routes>
     </>
   )

@@ -39,3 +39,14 @@
     grid-template-columns: 1fr 1fr 1fr;
     grid-gap: 40px;
 }
+
+.menu__error{
+    font-family: var(--font-family);
+    color: red;
+    height: 6vw;
+    padding: 1vw;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}

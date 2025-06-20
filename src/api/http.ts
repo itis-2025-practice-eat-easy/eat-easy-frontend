@@ -1,46 +1,36 @@
-import axios, {  type AxiosError} from 'axios';
-import type { LoginRequest, TokenResponse, RefreshRequest } from './authApi';
-
+import axios, { AxiosError, type AxiosRequestConfig } from 'axios';
+import { refreshApi } from './authApi';
 
 const http = axios.create({
-    baseURL: '',
+    baseURL: 'http://5.104.75.208:8080',
     headers: { 'Content-Type': 'application/json' },
 });
 
-http.interceptors.request.use(config => {
-    const token = localStorage.getItem('token');
-    if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
+http.interceptors.request.use(cfg => {
+    const token = localStorage.getItem('accessToken');
+    if (token && cfg.headers) cfg.headers.Authorization = `Bearer ${token}`;
+    return cfg;
 });
 
 http.interceptors.response.use(
-    response => response,
-    (error: AxiosError) => {
+    res => res,
+    async (error: AxiosError & { config?: AxiosRequestConfig & { __retry?: boolean } }) => {
+        const cfg = error.config;
+        if (error.response?.status === 401 && cfg && !cfg.__retry) {
+            cfg.__retry = true;
+            const fingerprint = localStorage.getItem('fingerprint')!;
+            const refreshToken = localStorage.getItem('refreshToken')!;
+            try {
+                const tokens = await refreshApi({ fingerprint, refreshToken });
+                localStorage.setItem('accessToken', tokens.access);
+                localStorage.setItem('refreshToken', tokens.refresh);
+                if (cfg.headers) cfg.headers.Authorization = `Bearer ${tokens.access}`;
+                return http.request(cfg);
+            } catch {
+            }
+        }
         return Promise.reject(error);
     }
 );
-
-export async function loginApi(payload: LoginRequest): Promise<TokenResponse> {
-    const resp = await http.post<TokenResponse>('/api/v1/auth/login', payload, {
-        withCredentials: true,
-    });
-    return resp.data;
-}
-
-export async function refreshApi(payload: RefreshRequest): Promise<TokenResponse> {
-    const resp = await http.post<TokenResponse>('/api/v1/auth/refresh', payload, {
-        withCredentials: true,
-    });
-    return resp.data;
-}
-
-export async function logoutApi(): Promise<void> {
-    await http.post('/api/v1/auth/logout', {}, {
-        withCredentials: true,
-    });
-}
-
 
 export default http;
